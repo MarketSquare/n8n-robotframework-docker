@@ -1,15 +1,12 @@
 #!/bin/bash
 set -e
 
-# Check required arguments
-if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Usage: $0 <NODE_VERSION> <N8N_VERSION>"
-    echo "Example: $0 22.22.0 1.121.0"
-    exit 1
-fi
-
-NODE_VERSION=$1
-N8N_VERSION=$2
+# Default versions; override any of them as NAME=VERSION arguments,
+# e.g. ./docker/images/build-n8n-robotframework.sh N8N_VERSION=2.48.6
+source ./versions.env
+for arg in "$@"; do
+    declare "$arg"
+done
 
 echo "Building with NODE_VERSION=${NODE_VERSION} and N8N_VERSION=${N8N_VERSION}"
 echo ""
@@ -38,6 +35,10 @@ echo ""
 echo "=== Building n8n-robotframework ==="
 docker build --no-cache --progress=plain \
     --build-arg N8N_VERSION=${N8N_VERSION} \
+    --build-arg ROBOTFRAMEWORK_VERSION=${ROBOTFRAMEWORK_VERSION} \
+    --build-arg RF_BROWSER_VERSION=${RF_BROWSER_VERSION} \
+    --build-arg RF_ASSERTION_ENGINE_VERSION=${RF_ASSERTION_ENGINE_VERSION} \
+    --build-arg RF_JSONLIBRARY_VERSION=${RF_JSONLIBRARY_VERSION} \
     -f ./docker/images/n8n-robotframework/Dockerfile \
     -t delilovic/n8n_robotframework:${N8N_VERSION}-bookworm-slim \
     -t delilovic/n8n_robotframework:latest \

@@ -20,18 +20,19 @@ These images use **Debian Bookworm** instead of Alpine Linux because Robot Frame
 
 1. Go to **Actions** → **Build n8n Robot Framework Images**
 2. Click **Run workflow**
-3. Enter Node.js version and n8n version
+3. Optionally enter versions; empty fields use the defaults from [versions.env](versions.env)
 4. Images are pushed to Docker Hub
 
 ### Local Build (Host architecture only)
 
 ```bash
-./docker/images/build-n8n-robotframework.sh <NODE_VERSION> <N8N_VERSION>
+./docker/images/build-n8n-robotframework.sh [NAME=VERSION ...]
 ```
 
-Example:
+Default versions come from [versions.env](versions.env), the single place to change them. Any of them can be overridden as `NAME=VERSION`:
 ```bash
-./docker/images/build-n8n-robotframework.sh 22.22.0 2.4.4
+./docker/images/build-n8n-robotframework.sh
+./docker/images/build-n8n-robotframework.sh N8N_VERSION=2.48.6 RF_BROWSER_VERSION=21.0.0
 ```
 
 ## Run
@@ -48,3 +49,7 @@ docker run -it --rm --name n8n \
 - Docker
 - Docker Hub account (for pushing images)
 - `DOCKERHUB_TOKEN` secret in GitHub (for Actions)
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.

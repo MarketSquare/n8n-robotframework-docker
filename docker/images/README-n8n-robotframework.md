@@ -14,7 +14,7 @@ Builds and pushes AMD64 + ARM64 images to Docker Hub automatically.
 
 1. Go to **Actions** → **Build n8n Robot Framework Images**
 2. Click **Run workflow**
-3. Enter Node.js version and n8n version
+3. Optionally enter versions; empty fields use the defaults from [versions.env](../../versions.env)
 4. Images are pushed to Docker Hub
 
 **Required secrets:**
@@ -31,20 +31,27 @@ Builds for your host architecture only.
 **Usage:**
 
 ```bash
-./docker/images/build-n8n-robotframework.sh <NODE_VERSION> <N8N_VERSION>
+./docker/images/build-n8n-robotframework.sh [NAME=VERSION ...]
 ```
 
 ### Parameters
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `NODE_VERSION` | Node.js version for the base image | `22.22.0` |
-| `N8N_VERSION` | n8n version | `2.4.4` |
+Default versions are defined in [versions.env](../../versions.env), the single place to change them. Any of them can be overridden per build as `NAME=VERSION`.
+
+| Parameter | Description |
+|-----------|-------------|
+| `NODE_VERSION` | Node.js version for the base image |
+| `N8N_VERSION` | n8n version |
+| `ROBOTFRAMEWORK_VERSION` | Robot Framework version |
+| `RF_BROWSER_VERSION` | robotframework-browser version |
+| `RF_ASSERTION_ENGINE_VERSION` | robotframework-assertion-engine version (must match what robotframework-browser requires) |
+| `RF_JSONLIBRARY_VERSION` | robotframework-jsonlibrary version |
 
 ### Example
 
 ```bash
-./docker/images/build-n8n-robotframework.sh 22.22.0 2.4.4
+./docker/images/build-n8n-robotframework.sh
+./docker/images/build-n8n-robotframework.sh N8N_VERSION=2.48.6 RF_BROWSER_VERSION=21.0.0
 ```
 
 ## Images Built

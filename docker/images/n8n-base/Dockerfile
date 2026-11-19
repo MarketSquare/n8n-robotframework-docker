@@ -23,12 +23,12 @@ RUN echo "deb http://deb.debian.org/debian bookworm contrib" >> /etc/apt/sources
         tzdata \
         ca-certificates \
         wget && \
-    # Install full-icu
-    npm install -g full-icu@1.5.0 && \
     # Cleanup
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.npm /root/.cache/node /opt/yarn*
 
 WORKDIR /home/node
-ENV NODE_ICU_DATA=/usr/local/lib/node_modules/full-icu
+# Global npm modules live under /usr/local; set NODE_PATH so packages added
+# via `npm install -g` are require()-able at runtime.
+ENV NODE_PATH=/usr/local/lib/node_modules
 EXPOSE 5678/tcp

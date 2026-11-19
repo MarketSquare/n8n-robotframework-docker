@@ -2,22 +2,21 @@ ARG N8N_VERSION
 
 FROM delilovic/n8n:${N8N_VERSION}-bookworm-slim
 
+ARG ROBOTFRAMEWORK_VERSION
+ARG RF_BROWSER_VERSION
+ARG RF_ASSERTION_ENGINE_VERSION
+ARG RF_JSONLIBRARY_VERSION
+
 USER root
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends python3 python3-pip curl && \
     pip3 install --no-cache-dir --break-system-packages \
-        robotframework==7.4.1 \
-        robotframework-browser==19.12.4 \
-        robotframework-assertion-engine==3.1.3 \
-        robotframework-jsonlibrary==0.5 && \
+        robotframework==${ROBOTFRAMEWORK_VERSION} \
+        robotframework-browser==${RF_BROWSER_VERSION} \
+        robotframework-assertion-engine==${RF_ASSERTION_ENGINE_VERSION} \
+        robotframework-jsonlibrary==${RF_JSONLIBRARY_VERSION} && \
     npx playwright install-deps && \
     rfbrowser init
-
-# Install Node.js packages
-RUN npm install -g \
-        weaviate-client@3.8.1 \
-        @mozilla/readability@0.6.0 \
-        @postlight/parser@2.2.3
 
 USER node
