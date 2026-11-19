@@ -20,7 +20,7 @@ These images use **Debian Bookworm** instead of Alpine Linux because Robot Frame
 
 1. Go to **Actions** → **Build n8n Robot Framework Images**
 2. Click **Run workflow**
-3. Optionally enter versions; empty fields use the defaults from [versions.env](versions.env)
+3. Adjust the versions if needed (defaults are prefilled)
 4. Images are pushed to Docker Hub
 
 ### Local Build (Host architecture only)
@@ -29,7 +29,7 @@ These images use **Debian Bookworm** instead of Alpine Linux because Robot Frame
 ./docker/images/build-n8n-robotframework.sh [NAME=VERSION ...]
 ```
 
-Default versions come from [versions.env](versions.env), the single place to change them. Any of them can be overridden as `NAME=VERSION`:
+Default versions come from the workflow inputs in [build-n8n-robotframework.yml](.github/workflows/build-n8n-robotframework.yml), the single place to change them. Any of them can be overridden as `NAME=VERSION`:
 ```bash
 ./docker/images/build-n8n-robotframework.sh
 ./docker/images/build-n8n-robotframework.sh N8N_VERSION=2.48.6 RF_BROWSER_VERSION=21.0.0

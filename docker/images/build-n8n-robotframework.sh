@@ -1,9 +1,13 @@
 #!/bin/bash
 set -e
 
-# Default versions; override any of them as NAME=VERSION arguments,
+# Default versions come from the GitHub Actions workflow inputs (e.g. node_version
+# -> NODE_VERSION); override any of them as NAME=VERSION arguments,
 # e.g. ./docker/images/build-n8n-robotframework.sh N8N_VERSION=2.48.6
-source ./versions.env
+while read -r default; do
+    declare "$default"
+done < <(awk -F"'" '/^      [a-z0-9_]+:$/ { name = toupper($0); gsub(/[ :]/, "", name) }
+    /^        default:/ { print name "=" $2 }' ./.github/workflows/build-n8n-robotframework.yml)
 for arg in "$@"; do
     declare "$arg"
 done

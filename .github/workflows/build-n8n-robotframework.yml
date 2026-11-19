@@ -2,75 +2,55 @@ name: Build n8n Robot Framework Images
 
 on:
   workflow_dispatch:
+    # Default versions for all images. This is the only place to change them;
+    # docker/images/build-n8n-robotframework.sh reads them from here as well.
     inputs:
+      # Node.js 24, not 26 (which upstream n8n uses): @confluentinc/kafka-javascript,
+      # a native n8n dependency, has no prebuilt binary for Node.js 26 and does not
+      # compile against the old librdkafka in Debian Bookworm, so the n8n image fails
+      # to build. Node.js 24 has prebuilt binaries, is an official upstream n8n base
+      # version, and meets n8n's requirement of Node.js >= 24.
+      # Move to 26 once kafka-javascript publishes "node-v147" binaries:
+      # https://github.com/confluentinc/confluent-kafka-javascript/releases
       node_version:
-        description: 'Node.js version (empty = versions.env)'
-        required: false
+        description: 'Node.js version'
+        required: true
+        default: '24.22.2'
         type: string
       n8n_version:
-        description: 'n8n version (empty = versions.env)'
-        required: false
+        description: 'n8n version'
+        required: true
+        default: '2.48.6'
         type: string
       robotframework_version:
-        description: 'Robot Framework version (empty = versions.env)'
-        required: false
+        description: 'Robot Framework version'
+        required: true
+        default: '7.5.1'
         type: string
       rf_browser_version:
-        description: 'robotframework-browser version (empty = versions.env)'
-        required: false
+        description: 'robotframework-browser version'
+        required: true
+        default: '21.0.0'
         type: string
+      # Must match the version required by robotframework-browser
       rf_assertion_engine_version:
-        description: 'robotframework-assertion-engine version (empty = versions.env)'
-        required: false
+        description: 'robotframework-assertion-engine version'
+        required: true
+        default: '5.0.1'
         type: string
       rf_jsonlibrary_version:
-        description: 'robotframework-jsonlibrary version (empty = versions.env)'
-        required: false
+        description: 'robotframework-jsonlibrary version'
+        required: true
+        default: '0.5'
         type: string
 
 env:
   DOCKERHUB_USERNAME: delilovic
 
 jobs:
-  versions:
-    name: Resolve versions
-    runs-on: ubuntu-latest
-    outputs:
-      node_version: ${{ steps.versions.outputs.NODE_VERSION }}
-      n8n_version: ${{ steps.versions.outputs.N8N_VERSION }}
-      robotframework_version: ${{ steps.versions.outputs.ROBOTFRAMEWORK_VERSION }}
-      rf_browser_version: ${{ steps.versions.outputs.RF_BROWSER_VERSION }}
-      rf_assertion_engine_version: ${{ steps.versions.outputs.RF_ASSERTION_ENGINE_VERSION }}
-      rf_jsonlibrary_version: ${{ steps.versions.outputs.RF_JSONLIBRARY_VERSION }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Read versions.env and apply inputs
-        id: versions
-        env:
-          IN_NODE_VERSION: ${{ inputs.node_version }}
-          IN_N8N_VERSION: ${{ inputs.n8n_version }}
-          IN_ROBOTFRAMEWORK_VERSION: ${{ inputs.robotframework_version }}
-          IN_RF_BROWSER_VERSION: ${{ inputs.rf_browser_version }}
-          IN_RF_ASSERTION_ENGINE_VERSION: ${{ inputs.rf_assertion_engine_version }}
-          IN_RF_JSONLIBRARY_VERSION: ${{ inputs.rf_jsonlibrary_version }}
-        run: |
-          source ./versions.env
-          for name in NODE_VERSION N8N_VERSION ROBOTFRAMEWORK_VERSION RF_BROWSER_VERSION RF_ASSERTION_ENGINE_VERSION RF_JSONLIBRARY_VERSION; do
-            input="IN_$name"
-            value="${!input:-${!name}}"
-            if [ -z "$value" ]; then
-              echo "$name is not set in versions.env or the workflow inputs" >&2
-              exit 1
-            fi
-            echo "$name=$value" | tee -a "$GITHUB_OUTPUT"
-          done
-
   build-n8n-base:
     name: Build n8n_base
     runs-on: ubuntu-latest
-    needs: versions
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,14 +75,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            NODE_VERSION=${{ needs.versions.outputs.node_version }}
+            NODE_VERSION=${{ inputs.node_version }}
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/n8n_base:${{ needs.versions.outputs.node_version }}-bookworm-slim
+            ${{ env.DOCKERHUB_USERNAME }}/n8n_base:${{ inputs.node_version }}-bookworm-slim
 
   build-n8n:
     name: Build n8n
     runs-on: ubuntu-latest
-    needs: [versions, build-n8n-base]
+    needs: build-n8n-base
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -127,16 +107,16 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            NODE_VERSION=${{ needs.versions.outputs.node_version }}
-            N8N_VERSION=${{ needs.versions.outputs.n8n_version }}
+            NODE_VERSION=${{ inputs.node_version }}
+            N8N_VERSION=${{ inputs.n8n_version }}
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/n8n:${{ needs.versions.outputs.n8n_version }}-bookworm-slim
+            ${{ env.DOCKERHUB_USERNAME }}/n8n:${{ inputs.n8n_version }}-bookworm-slim
             ${{ env.DOCKERHUB_USERNAME }}/n8n:latest
 
   build-n8n-robotframework:
     name: Build n8n-robotframework
     runs-on: ubuntu-latest
-    needs: [versions, build-n8n]
+    needs: build-n8n
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -161,11 +141,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            N8N_VERSION=${{ needs.versions.outputs.n8n_version }}
-            ROBOTFRAMEWORK_VERSION=${{ needs.versions.outputs.robotframework_version }}
-            RF_BROWSER_VERSION=${{ needs.versions.outputs.rf_browser_version }}
-            RF_ASSERTION_ENGINE_VERSION=${{ needs.versions.outputs.rf_assertion_engine_version }}
-            RF_JSONLIBRARY_VERSION=${{ needs.versions.outputs.rf_jsonlibrary_version }}
+            N8N_VERSION=${{ inputs.n8n_version }}
+            ROBOTFRAMEWORK_VERSION=${{ inputs.robotframework_version }}
+            RF_BROWSER_VERSION=${{ inputs.rf_browser_version }}
+            RF_ASSERTION_ENGINE_VERSION=${{ inputs.rf_assertion_engine_version }}
+            RF_JSONLIBRARY_VERSION=${{ inputs.rf_jsonlibrary_version }}
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/n8n_robotframework:${{ needs.versions.outputs.n8n_version }}-bookworm-slim
+            ${{ env.DOCKERHUB_USERNAME }}/n8n_robotframework:${{ inputs.n8n_version }}-bookworm-slim
             ${{ env.DOCKERHUB_USERNAME }}/n8n_robotframework:latest

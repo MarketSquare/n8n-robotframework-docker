@@ -14,7 +14,7 @@ Builds and pushes AMD64 + ARM64 images to Docker Hub automatically.
 
 1. Go to **Actions** → **Build n8n Robot Framework Images**
 2. Click **Run workflow**
-3. Optionally enter versions; empty fields use the defaults from [versions.env](../../versions.env)
+3. Adjust the versions if needed (defaults are prefilled)
 4. Images are pushed to Docker Hub
 
 **Required secrets:**
@@ -36,7 +36,7 @@ Builds for your host architecture only.
 
 ### Parameters
 
-Default versions are defined in [versions.env](../../versions.env), the single place to change them. Any of them can be overridden per build as `NAME=VERSION`.
+Default versions are defined as the workflow input defaults in [build-n8n-robotframework.yml](../../.github/workflows/build-n8n-robotframework.yml), the single place to change them. The script reads them from there; any of them can be overridden per build as `NAME=VERSION`.
 
 | Parameter | Description |
 |-----------|-------------|
